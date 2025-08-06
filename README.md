@@ -1,7 +1,8 @@
-# 🕰️ WebPastMachine
+# WebPastMachine ![Python Version](https://img.shields.io/badge/python-3.6+-blue.svg) ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
-![Python Version](https://img.shields.io/badge/python-3.6+-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
+ <div align="center">
+   <img src="Logo.png" alt="Logo" width=250/>
+ </div>
 
 ## 📖 Description
 
@@ -120,5 +121,6 @@ The tool handles various error scenarios:
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 👏 Acknowledgments
+
 
 - Internet Archive for providing the Wayback Machine
