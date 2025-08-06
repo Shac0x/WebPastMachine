@@ -103,18 +103,6 @@ The exported file will contain all URLs with their capture dates and archive lin
 - Uses the Wayback Machine CDX API
 - Implements efficient URL deduplication
 - Handles rate limiting and timeouts
-- Provides meaningful error messages
-- Supports Unicode domains and paths
-
-## 🐛 Error Handling
-
-The tool handles various error scenarios:
-- Invalid domains
-- Network connection issues
-- API response errors
-- File writing permissions
-- Invalid file extensions
-
 
 ## 📄 License
 
@@ -124,3 +112,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 
 - Internet Archive for providing the Wayback Machine
+
