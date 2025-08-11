@@ -14,6 +14,7 @@ WebPastMachine is a powerful tool that lets you explore the history of any websi
 - 📊 Analyze file types and their distribution
 - 🔎 Filter results by file extension
 - 💾 Export results to a file
+- 🎨 Colored terminal output for better readability
 - ⚡ Fast and efficient processing
 - 🛠️ Easy to use command-line interface
 
@@ -29,6 +30,8 @@ cd WebPastMachine
 ```bash
 pip install -r requirements.txt
 ```
+
+Note: The tool will work without additional packages, but installing `colorama` provides a better visual experience with colored terminal output.
 
 ## 💻 Usage
 
@@ -69,7 +72,12 @@ python WebPastMachine.py example.com -e pdf -o pdfs.txt
 
 ### Console Output
 ```
-Searching archived URLs for example.com...
+╔════════════════════════════════════════════════════════════════╗
+║ Searching archived URLs for example.com...                     ║
+╚════════════════════════════════════════════════════════════════╝
+
+Processing URLs...
+Processed 500/1200 URLs
 
 Analysis of file types found:
 --------------------------------------------------
@@ -81,11 +89,14 @@ Analysis of file types found:
 
 Total unique URLs found: 270
 
+------------------------------------
 URL: https://example.com/page.html
 First capture: 2010-01-15 14:25:10
 Archive link: http://web.archive.org/web/20100115142510/https://example.com/page.html
 ------------------------------------
 ```
+
+With colorama installed, the output will be nicely colorized, making it easier to read and distinguish between different types of information.
 
 ### File Output
 The exported file will contain all URLs with their capture dates and archive links in a clean, readable format.

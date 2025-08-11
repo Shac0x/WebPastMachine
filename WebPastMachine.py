@@ -8,6 +8,14 @@ import sys
 from collections import Counter
 import argparse
 from typing import Dict, List, Optional
+import time
+try:
+    from colorama import init, Fore, Back, Style
+    colorama_available = True
+    init(autoreset=True)  # Initialize colorama
+except ImportError:
+    colorama_available = False
+    print("For colored output, install colorama: pip install colorama")
 
 def analyze_extensions(urls: List[str]) -> Counter:
     extensions = []
@@ -15,7 +23,6 @@ def analyze_extensions(urls: List[str]) -> Counter:
         path = urlparse(url).path
         if '.' in path:
             ext = path.split('.')[-1].lower()
-            # Only include valid extensions (alphanumeric and reasonable length)
             if ext.isalnum() and len(ext) < 6:
                 extensions.append(ext)
     
@@ -36,10 +43,12 @@ def export_to_file(urls_data: Dict, output_file: str) -> None:
 def get_wayback_urls(domain: str, extension_filter: Optional[str] = None, 
                     output_file: Optional[str] = None) -> None:
     if not domain:
-        print("Error: Please provide a valid domain")
+        if colorama_available:
+            print(f"{Fore.RED}Error: Please provide a valid domain{Style.RESET_ALL}")
+        else:
+            print("Error: Please provide a valid domain")
         return
 
-    # Ensure domain has proper format
     if not domain.startswith(('http://', 'https://')):
         domain = 'http://' + domain
     
@@ -48,7 +57,12 @@ def get_wayback_urls(domain: str, extension_filter: Optional[str] = None,
         wayback_url = (f"https://web.archive.org/cdx/search/cdx?"
                       f"url={parsed_domain}/*&output=json&collapse=timestamp:4")
         
-        print(f"Searching archived URLs for {parsed_domain}...")
+        if colorama_available:
+            print(f"\n{Fore.CYAN}╔{'═' * 60}╗")
+            print(f"{Fore.CYAN}║ {Fore.YELLOW}Searching archived URLs for {Fore.GREEN}{parsed_domain}{Fore.YELLOW}...{' ' * (28-len(parsed_domain))}{Fore.CYAN}║")
+            print(f"{Fore.CYAN}╚{'═' * 60}╝{Style.RESET_ALL}\n")
+        else:
+            print(f"\nSearching archived URLs for {parsed_domain}...\n")
         
         response = requests.get(wayback_url, timeout=30)
         response.raise_for_status()
@@ -56,7 +70,10 @@ def get_wayback_urls(domain: str, extension_filter: Optional[str] = None,
         results = response.json()
         
         if not results or len(results) <= 1:
-            print("No archived URLs found for this domain.")
+            if colorama_available:
+                print(f"{Fore.RED}No archived URLs found for this domain.{Style.RESET_ALL}")
+            else:
+                print("No archived URLs found for this domain.")
             return
         
         headers = results[0]
@@ -65,12 +82,22 @@ def get_wayback_urls(domain: str, extension_filter: Optional[str] = None,
         unique_urls = {}
         all_urls = []
         
-        # Process URLs
-        for url_data in urls:
+        if colorama_available:
+            print(f"\n{Fore.CYAN}Processing URLs...{Style.RESET_ALL}")
+        else:
+            print("\nProcessing URLs...")
+        
+        total_urls = len(urls)
+        for i, url_data in enumerate(urls):
             url_dict = dict(zip(headers, url_data))
             original_url = url_dict['original']
             
-            # Apply extension filter if specified
+            if i > 0 and i % 100 == 0:
+                if colorama_available:
+                    print(f"{Fore.CYAN}Processed {i}/{total_urls} URLs{Style.RESET_ALL}", end="\r")
+                else:
+                    print(f"Processed {i}/{total_urls} URLs", end="\r")
+            
             if extension_filter and not original_url.lower().endswith(
                     f'.{extension_filter.lower()}'):
                 continue
@@ -88,7 +115,6 @@ def get_wayback_urls(domain: str, extension_filter: Optional[str] = None,
                 }
                 all_urls.append(original_url)
         
-        # Show extension analysis
         print("\nAnalysis of file types found:")
         print("-" * 50)
         extension_counts = analyze_extensions(all_urls)
@@ -96,23 +122,45 @@ def get_wayback_urls(domain: str, extension_filter: Optional[str] = None,
         if extension_counts:
             for ext, count in sorted(
                     extension_counts.items(), key=lambda x: (-x[1], x[0])):
-                print(f"*.{ext}: {count} files")
+                if colorama_available:
+                    ext_color = Fore.GREEN if count > 10 else Fore.YELLOW if count > 5 else Fore.WHITE
+                    print(f"{ext_color}*.{ext}: {Fore.CYAN}{count} files{Style.RESET_ALL}")
+                else:
+                    print(f"*.{ext}: {count} files")
         else:
-            print("No files with recognizable extensions were found")
+            if colorama_available:
+                print(f"{Fore.YELLOW}No files with recognizable extensions were found{Style.RESET_ALL}")
+            else:
+                print("No files with recognizable extensions were found")
         
-        print(f"\nTotal unique URLs found: {len(unique_urls)}")
+        if colorama_available:
+            print(f"\n{Fore.GREEN}Total unique URLs found: {Fore.WHITE}{len(unique_urls)}{Style.RESET_ALL}")
+        else:
+            print(f"\nTotal unique URLs found: {len(unique_urls)}")
         
         # Handle output
         if output_file:
             export_to_file(unique_urls, output_file)
-            print(f"\nResults exported to: {output_file}")
+            if colorama_available:
+                print(f"\n{Fore.GREEN}Results exported to: {Fore.WHITE}{output_file}{Style.RESET_ALL}")
+            else:
+                print(f"\nResults exported to: {output_file}")
         else:
-            print("-" * 100)
+            if colorama_available:
+                divider = f"{Fore.CYAN}{'-' * 100}{Style.RESET_ALL}"
+            else:
+                divider = "-" * 100
+            print(divider)
             for url, data in unique_urls.items():
-                print(f"URL: {url}")
-                print(f"First capture: {data['date']}")
-                print(f"Archive link: {data['archive_link']}")
-                print("-" * 100)
+                if colorama_available:
+                    print(f"{Fore.YELLOW}URL: {Fore.WHITE}{url}{Style.RESET_ALL}")
+                    print(f"{Fore.YELLOW}First capture: {Fore.WHITE}{data['date']}{Style.RESET_ALL}")
+                    print(f"{Fore.YELLOW}Archive link: {Fore.CYAN}{data['archive_link']}{Style.RESET_ALL}")
+                else:
+                    print(f"URL: {url}")
+                    print(f"First capture: {data['date']}")
+                    print(f"Archive link: {data['archive_link']}")
+                print(divider)
             
     except requests.exceptions.RequestException as e:
         print(f"Error fetching data: {e}")
