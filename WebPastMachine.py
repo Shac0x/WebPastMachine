@@ -30,18 +30,22 @@ def analyze_extensions(urls: List[str]) -> Counter:
 
 def export_to_file(urls_data: Dict, output_file: str) -> None:
     try:
+        formatted_data = []
+        for url, data in urls_data.items():
+            formatted_data.append({
+                "url": url,
+                "first_capture": data['date'],
+                "archive_link": data['archive_link']
+            })
+        
         with open(output_file, 'w', encoding='utf-8') as f:
-            for url, data in urls_data.items():
-                f.write(f"URL: {url}\n")
-                f.write(f"First capture: {data['date']}\n")
-                f.write(f"Archive link: {data['archive_link']}\n")
-                f.write("-" * 100 + "\n")
+            json.dump(formatted_data, f, indent=4, ensure_ascii=False)
     except IOError as e:
         print(f"Error writing to file: {e}")
         sys.exit(1)
 
 def get_wayback_urls(domain: str, extension_filter: Optional[str] = None, 
-                    output_file: Optional[str] = None) -> None:
+                    output_file: Optional[str] = None, summary: bool = False) -> None:
     if not domain:
         if colorama_available:
             print(f"{Fore.RED}Error: Please provide a valid domain{Style.RESET_ALL}")
@@ -64,10 +68,30 @@ def get_wayback_urls(domain: str, extension_filter: Optional[str] = None,
         else:
             print(f"\nSearching archived URLs for {parsed_domain}...\n")
         
-        response = requests.get(wayback_url, timeout=30)
-        response.raise_for_status()
+        max_retries = 3
+        retry_count = 0
+        success = False
         
-        results = response.json()
+        while retry_count < max_retries and not success:
+            try:
+                response = requests.get(wayback_url, timeout=30)
+                response.raise_for_status()
+                results = response.json()
+                success = True
+            except (requests.exceptions.RequestException, json.JSONDecodeError) as e:
+                retry_count += 1
+                if retry_count >= max_retries:
+                    if colorama_available:
+                        print(f"{Fore.RED}Failed after {max_retries} attempts: {str(e)}{Style.RESET_ALL}")
+                    else:
+                        print(f"Failed after {max_retries} attempts: {str(e)}")
+                    raise
+                else:
+                    if colorama_available:
+                        print(f"{Fore.YELLOW}Attempt {retry_count} failed. Retrying...{Style.RESET_ALL}")
+                    else:
+                        print(f"Attempt {retry_count} failed. Retrying...")
+                    time.sleep(3)
         
         if not results or len(results) <= 1:
             if colorama_available:
@@ -146,21 +170,22 @@ def get_wayback_urls(domain: str, extension_filter: Optional[str] = None,
             else:
                 print(f"\nResults exported to: {output_file}")
         else:
-            if colorama_available:
-                divider = f"{Fore.CYAN}{'-' * 100}{Style.RESET_ALL}"
-            else:
-                divider = "-" * 100
-            print(divider)
-            for url, data in unique_urls.items():
+            if not summary:
                 if colorama_available:
-                    print(f"{Fore.YELLOW}URL: {Fore.WHITE}{url}{Style.RESET_ALL}")
-                    print(f"{Fore.YELLOW}First capture: {Fore.WHITE}{data['date']}{Style.RESET_ALL}")
-                    print(f"{Fore.YELLOW}Archive link: {Fore.CYAN}{data['archive_link']}{Style.RESET_ALL}")
+                    divider = f"{Fore.CYAN}{'-' * 100}{Style.RESET_ALL}"
                 else:
-                    print(f"URL: {url}")
-                    print(f"First capture: {data['date']}")
-                    print(f"Archive link: {data['archive_link']}")
+                    divider = "-" * 100
                 print(divider)
+                for url, data in unique_urls.items():
+                    if colorama_available:
+                        print(f"{Fore.YELLOW}URL: {Fore.WHITE}{url}{Style.RESET_ALL}")
+                        print(f"{Fore.YELLOW}First capture: {Fore.WHITE}{data['date']}{Style.RESET_ALL}")
+                        print(f"{Fore.YELLOW}Archive link: {Fore.CYAN}{data['archive_link']}{Style.RESET_ALL}")
+                    else:
+                        print(f"URL: {url}")
+                        print(f"First capture: {data['date']}")
+                        print(f"Archive link: {data['archive_link']}")
+                    print(divider)
             
     except requests.exceptions.RequestException as e:
         print(f"Error fetching data: {e}")
@@ -182,9 +207,10 @@ You can filter by file extension and export the results to a file.
 
 Examples:
   python pastwebviewer.py example.com
+  python pastwebviewer.py example.com -s
   python pastwebviewer.py example.com -e pdf
-  python pastwebviewer.py example.com -o results.txt
-  python pastwebviewer.py example.com -e pdf -o pdfs.txt
+  python pastwebviewer.py example.com -o results.json
+  python pastwebviewer.py example.com -e pdf -o pdfs.json
 ''',
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
@@ -204,6 +230,12 @@ Examples:
         '-o', '--output',
         help='Output file to save results (example: results.txt)'
     )
+    
+    parser.add_argument(
+        '-s', '--summary',
+        action='store_true',
+        help='Show only summary information without listing individual URLs'
+    )
 
     args = parser.parse_args()
 
@@ -211,7 +243,7 @@ Examples:
         parser.print_help()
         sys.exit(1)
 
-    get_wayback_urls(args.domain, args.extension, args.output)
+    get_wayback_urls(args.domain, args.extension, args.output, args.summary)
 
 if __name__ == "__main__":
     main()

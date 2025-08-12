@@ -54,7 +54,12 @@ python WebPastMachine.py example.com -e pdf
 python WebPastMachine.py example.com -o results.txt
 ```
 
-3. Combine filtering and export:
+3. Show only summary without listing individual URLs:
+```bash
+python WebPastMachine.py example.com -s
+```
+
+4. Combine filtering and export:
 ```bash
 python WebPastMachine.py example.com -e pdf -o pdfs.txt
 ```
@@ -66,6 +71,7 @@ python WebPastMachine.py example.com -e pdf -o pdfs.txt
 | domain | The domain to search (required) | example.com |
 | -e, --extension | Filter by file extension | -e pdf |
 | -o, --output | Output file to save results | -o results.txt |
+| -s, --summary | Show only summary without listing individual URLs | -s |
 | -h, --help | Show help message | -h |
 
 ## 📝 Output Format
