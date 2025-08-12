@@ -43,15 +43,14 @@ python WebPastMachine.py example.com
 ```
 
 ### Advanced Options
-
-1. Filter by file extension:
+1. Export to file (combine summary mode with output):
 ```bash
-python WebPastMachine.py example.com -e pdf
+python WebPastMachine.py example.com -s -o results.json
 ```
 
-2. Export results to a file:
+2. Filter by file extension:
 ```bash
-python WebPastMachine.py example.com -o results.txt
+python WebPastMachine.py example.com -e pdf
 ```
 
 3. Show only summary without listing individual URLs:
@@ -61,16 +60,15 @@ python WebPastMachine.py example.com -s
 
 4. Combine filtering and export:
 ```bash
-python WebPastMachine.py example.com -e pdf -o pdfs.txt
+python WebPastMachine.py example.com -e pdf -o pdfs.json
 ```
-
 ### 📋 Command Line Arguments
 
 | Argument | Description | Example |
 |----------|-------------|---------|
 | domain | The domain to search (required) | example.com |
 | -e, --extension | Filter by file extension | -e pdf |
-| -o, --output | Output file to save results | -o results.txt |
+| -o, --output | Output file to save results | -o results.json |
 | -s, --summary | Show only summary without listing individual URLs | -s |
 | -h, --help | Show help message | -h |
 
